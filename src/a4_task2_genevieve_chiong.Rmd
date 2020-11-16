@@ -1,0 +1,295 @@
+---
+title: "assigment4_task2"
+author: "Genevieve Chiong"
+date: "11/15/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+library(tidyverse)
+library(lubridate)
+library(janitor)
+library(here)
+library(kableExtra)
+library(effsize)
+library(broom)
+```
+
+## Introduction
+
+
+
+Data citation: Kielland, K., F.S. Chapin, R.W. Ruess, and Bonanza Creek LTER. 2017. Snowshoe hare physical data in Bonanza Creek Experimental Forest: 1999-Present ver 22. Environmental Data Initiative. https://doi.org/10.6073/pasta/03dce4856d79b91557d8e6ce2cbcdc14
+
+
+
+## Data and Analyses
+
+
+
+
+
+## Exploratory Findings 
+
+```{r}
+# Read in the data 
+bonanza_hares <- read_csv(here("data","bonanza_hares.csv"))
+```
+
+### i) Annual juvenile hare trap counts 
+
+Here I count the total number of juvenile hare trappings during each year of the study and create a finalized data visualization of the counts by year. 
+
+```{r}
+juvenile_count <- bonanza_hares %>% 
+  filter(age == "j") %>% 
+  mutate(date_new = mdy(date)) %>% 
+  mutate(year_new = year(date_new)) %>% 
+  count(year_new)
+
+
+kable(juvenile_count,
+      col.names = c("Year",
+                    "Sample Size (n)")) %>% 
+  kable_styling(full_width = FALSE)
+```
+
+```{r fig.cap = "Figure 1: Annual juvenile hare trap counts: The total number of juvenile hare trappings between 1999-2012."} 
+
+ggplot(data = juvenile_count) + 
+  geom_col(aes(x = year_new,
+               y = n),
+           fill = "steelblue4", color = "black") +
+  labs(x = "Year",
+       y = "Number of Juvenile Hare Trappings") +
+  theme_minimal()
+```
+
+```{r}
+juvenile_count %>% 
+  summarize(
+    mean_count = mean(n),
+    median_count = median(n))
+```
+
+#### Major Takeaways about total snowshoe hare trappings at the site 
+
+The first year of the study, in 1999, showed the highest amount of total hare trappings. Since then, trapping count has declined throughout the years -- showing a decreasing trend throughout the years. The maximum count of juvenile hare trappings was in 1999 with a count of 126, and the minimum in 2010 with a count of 2. This does not take into consideration the years 2002 and 2009 which had zero juvenile hare trappings. The mean annual number of juvenile hares trapped is 31.5 and the median is 18.5. To standardize the juvenile hare population in future analyses, I would suggest ... also taking into consideration the numbers of days and number of traps in the study each year --> normalizing this data ?
+
+
+
+### ii) Visualize juvenile hare weights 
+
+Here, I ..... 
+Create a finalized data visualization (or visualizations) in which you compare **juvenile hare weights by sex and site (grid)** (ignore other variables). You should include groups where these variables are not recorded (`NA`). Include finalized figure captions below your visualization(s).
+
+```{r fig.cap = "Fig ??????? ....."}
+
+juvenile_weight <- bonanza_hares %>% 
+  filter(age == "j")
+
+juvenile_weight_summary <- juvenile_weight %>% 
+  select(grid, sex, weight) %>% 
+  group_by(grid, sex) %>% 
+  summarize(mean_weight_g = mean(weight),
+            max_weight_g = max(weight),
+            min_weight_g = min(weight),
+            sample_size = n())
+
+juvenile_weight_summary %>% 
+  kable(col.names = c("Site",
+                      "Sex",
+                      "Mean Weight (g)",
+                      "Max Weight (g)",
+                      "Min Weight (g)",
+                      "Sample Size (n)")) %>% 
+  kable_styling(full_width = FALSE)
+
+```
+
+
+```{r fig.cap = "Figure x: Comparisons of juvenile hare weights by sex (f = female, m = male, and NA = not recorded) and sampling site (Bonbs, Bonanza Mature, and Bonanza Riparian)."}
+
+site_labels <- c(bonbs = "Bonbs",
+            bonmat = "Bonanza Mature",
+            bonrip = "Bonanza Riparian")
+
+ggplot(data = juvenile_weight,
+       aes(x = sex,
+           y = weight,
+           fill = sex,
+           na.rm = TRUE)) +
+  geom_boxplot() + 
+  facet_wrap(~grid,
+             labeller=labeller(grid = site_labels)) +
+  labs(x = "Sex",
+       y = "Juvenile Hare Weights (g)") +
+  theme(legend.position="none") + 
+  scale_fill_brewer(palette="BuPu")
+  
+```
+
+
+#### Main Takeaways
+
+On average, in the Bonanza Mature and Bonanza Riparian sampling sites, male juvenile hares weighed more than female juvenile hares and juvenile hares whose sex was not recorded. In the Bonbs site, female juvenile hares had an average greater weight, but this may be due to the smaller sample size of male juvenile hares. 
+
+
+### iii) Juvenile weight comparison (male & female snowshoe hares)
+
+```{r}
+
+sex_labels <- c(f = "Female",
+                m = "Male")
+
+juvenile_sex_weight <- juvenile_weight %>% 
+  filter(sex == "f" | sex == "m")
+
+ggplot(data = juvenile_sex_weight,
+       aes(x = weight),
+       na.rm = TRUE) + 
+  geom_histogram(bins = 10) +
+  facet_wrap(~sex,
+             labeller=labeller(sex = sex_labels)) +
+  labs(x = "Weight (g)",
+       y = "Number of Juvenile Snowshoe Hare Trappings",
+       title = "Juvenile weight comparison of male and female snowshoe hares")
+```
+
+```{r}
+
+ggplot(data = juvenile_sex_weight, 
+       aes(sample = weight)) + 
+  geom_qq() +
+  facet_wrap(~sex)
+```
+
+```{r}
+sex_weight_stats <- juvenile_sex_weight %>% 
+  filter(weight > 0, weight < 2000) %>% 
+  group_by(sex) %>% 
+  summarize(mean_weight = mean(weight),
+            sd_weight = sd(weight),
+            sample_size = n())
+
+kable(sex_weight_stats,
+      col.names = c("Sex",
+                    "Mean Weight (g)",
+                    "Weight Standard Deviation (g)",
+                    "Sample Size (n)"),
+      caption = "Table 2: Statistic Summary Comparing Juvenile Female vs Male Snowshoe Hares") %>% 
+  kable_styling(full_width = FALSE)
+
+```
+
+```{r}
+juvenile_female_sample <- juvenile_sex_weight %>% 
+  filter(sex == "f") %>% 
+  pull(weight)
+
+juvenile_male_sample <- juvenile_sex_weight %>% 
+  filter(sex == "m") %>% 
+  pull(weight)
+
+t.test(x = juvenile_female_sample, y = juvenile_male_sample)
+
+```
+
+```{r}
+cohen.d(juvenile_female_sample, juvenile_male_sample,
+        na.rm = TRUE)
+```
+#### Main Takeaways
+Means comparison 
+P-value = 
+Actual differnece in means = 
+Effect size = small 
+Outcome of two-sample t-test 
+
+
+A finalized table containing the mean, standard deviation, and sample size for male and female juvenile snowshoe hares, with a table caption (remember, this is placed *above* the table in your report)
+A 2 - 3 sentence comprehensive statement of the means comparison, including at least:
+The actual difference in means
+Effect size (Cohen's *d*)
+Outcome of a two-sample t-test
+
+
+### iv) Relationship between juvenile weight and hind foot length
+
+```{r}
+hindft_length <- bonanza_hares %>% 
+  filter(age == "j") 
+
+ggplot(data = hindft_length,
+       aes(x = hindft,
+           y = weight)) +
+  geom_point() + 
+  labs(x = "Juvenile Snowshoe Hare Hind Foot Length (mm)",
+       y = "Weight (g)",
+       title = "Relationship between hind foot length and juvenile weight")
+```
+
+
+```{r}
+hindft_weight_lm <- lm(weight ~ hindft, data = hindft_length)
+
+summary(hindft_weight_lm)
+```
+
+
+```{r}
+hindft_weight_lm_tidy <- broom::tidy(hindft_weight_lm)
+
+hindft_weight_int <- hindft_weight_lm_tidy$estimate[1]
+hindft_weight_int
+
+hindft_weight_coef <- hindft_weight_lm_tidy$estimate[2]
+hindft_weight_coef
+
+hindft_weight_lm_out <- broom::glance(hindft_weight_lm)
+hindft_weight_lm_out
+```
+
+
+```{r}
+plot(hindft_weight_lm)
+```
+
+```{r}
+hares_cor <- cor.test(hindft_length$hindft,
+                      hindft_length$weight)
+hares_cor
+```
+
+```{r}
+ggplot(data = hindft_length,
+       aes(x = hindft,
+           y = weight)) +
+  geom_point(size = 2) +
+  geom_smooth(method = "lm",
+              color = "red",
+              size = 0.5,
+              fill = "gray10",
+              alpha = 0.5) +
+  theme_light() +
+  ggpubr::stat_regline_equation(label.x = 75, label.y = 1200)
+```
+
+#### Main Takewaways 
+
+
+
+
+
+### Summary
+
+
+
+
+### Citations
+
+
+
+
+
