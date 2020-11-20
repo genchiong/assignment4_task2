@@ -94,7 +94,7 @@ juvenile_count %>%
 ```
 The maximum count of juvenile hare trappings was in 1999 with a count of 126, and the minimum was in 2010, which had 2 hare trappings. The mean annual number of juvenile hares trapped was 31.5 and the median was 18.5. It is noted that the years 2002 and 2009 both had zero juvenile hare counts. In 2002, 38 hares were trapped - 3 were identified as adults and the ages of the remaining 35 were not recorded (defined as NA). In 2009, 410 hares were trapped - 6 were identified as adults and the ages of the remaining 404 were not recorded (defined as NA in the data). Due to the high percentage (>92%) of observations where age was not recorded in both years, these years were not been included in the mean and median calculations. 
 
-Since the first year of the study in 1999 with the highest amount of hare trappings, observations showed a notable decline throughout the years to 2012. To standardize the juvenile hare population in future analyses, I would suggest that in future analyses that the count be normalized to take into consideration the number of days and number of traps not being equal each year of the study. 
+Since the first year of the study in 1999 with the highest amount of hare trappings, observations showed a notable decline throughout the years through to 2012. To standardize the juvenile hare population in future analyses, calculating the mean snowshoe hare trappings per sampling date or site will provide more information about the data collection rates, taking into consideration effort (e.g. the number of days and number of traps in the study not being equal each year).
 
 
 #### B) Juvenile snoeshoe hare weights visualization 
